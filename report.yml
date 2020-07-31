@@ -1,0 +1,82 @@
+---
+ - name: Get Password Parameter
+   hosts: all
+   tasks:
+     - name: get minlen from password_auth
+       shell: cat /etc/pam.d/password-auth | grep -o 'minlen[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: pass_min_len
+
+     - name: get minlen from system_auth
+       shell:
+         cmd: cat /etc/pam.d/system-auth | grep -o 'minlen[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: system_min_len
+
+     - name: get remember from password_auth
+       shell:
+         cmd: cat /etc/pam.d/password-auth | grep -o 'remember[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: pass_remember
+
+     - name: get remember from system_auth
+       shell:
+         cmd: cat /etc/pam.d/system-auth | grep -o 'remember[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: system_remember
+
+     - name: get unlock_time from password_auth
+       shell:
+         cmd: cat /etc/pam.d/password-auth | grep -o 'unlock_time[^[:blank:]]*' | awk -F= '{print $2 }' | uniq
+       register: pass_ulock_time
+
+     - name: get unlock_time from system_auth
+       shell:
+         cmd: cat /etc/pam.d/system-auth | grep -o 'unlock_time[^[:blank:]]*' | awk -F= '{print $2 }' | uniq
+       register: system_ulock_time
+
+     - name: get retry from password_auth
+       shell:
+         cmd: cat /etc/pam.d/password-auth | grep -o 'retry[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: pass_retry
+
+     - name: get retry from system_auth
+       shell:
+         cmd: cat /etc/pam.d/system-auth | grep -o 'retry[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: system_retry
+
+     - name: get PASS_MIN_DAYS from /etc/login.defs
+       shell:
+         cmd: cat /etc/login.defs | grep '^PASS_MIN_DAYS' | awk '{print $2}'
+       register: PASS_MIN_DAYS
+
+     - name: get PASS_MAX_DAYS from /etc/login.defs
+       shell:
+         cmd: cat /etc/login.defs | grep '^PASS_MAX_DAYS' | awk '{print $2}'
+       register: PASS_MAX_DAYS
+
+     - name: get ClientAliveInterval from sshd_config
+       shell:
+         cmd: cat /etc/ssh/sshd_config | grep '^ClientAliveInterval' | awk '{print $2}'
+       register: ClientAliveInterval
+
+     - name: get dcredit from system_auth
+       shell:
+         cmd: cat /etc/pam.d/system_auth | grep -o 'dcredit[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: dcredit
+
+     - name: get ucredit from sshd_config
+       shell:
+         cmd: cat /etc/pam.d/system_auth | grep -o 'ucredit[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: ucredit
+
+     - name: get lcredit from sshd_config
+       shell:
+         cmd: cat /etc/pam.d/system_auth | grep -o 'lcredit[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: lcredit
+
+     - name: get ocredit from sshd_config
+       shell:
+         cmd: cat /etc/security/pwquality.conf | grep -o '^ocredit[^[:blank:]]*' | awk -F= '{print $2 }'
+       register: ocredit
+
+     - name: store the values to file in local sercer
+       shell:
+         cmd: echo "{{ansible_host}},{{pass_min_len.stdout}}, {{system_min_len.stdout}}, {{pass_remember.stdout}}, {{system_remember.stdout}}, {{pass_ulock_time.stdout}}, {{system_ulock_time.stdout}}, {{pass_retry.stdout}}, {{system_retry.stdout}}, {{PASS_MIN_DAYS.stdout}}, {{PASS_MAX_DAYS.stdout}},{{ClientAliveInterval.stdout}}, {{dcredit.stdout}},{{ucredit.stdout}},{{lcredit.stdout}},{{ocredit.stdout}}" >> /root/security/security.csv
+       delegate_to: 127.0.0.1

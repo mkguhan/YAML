@@ -1,0 +1,12 @@
+---
+ - name: Check RPM
+   hosts: all
+   tasks:
+     - name: Check RPM Installed
+       shell: rpm -qa | grep splunkforw
+       register: output
+
+     - name: Debug
+       shell:
+         cmd: echo " {{inventory_hostname}} - installed " >> /root/security/tmp.csv
+       when: {{output.stdout}} | regex_search('splunk')

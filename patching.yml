@@ -1,0 +1,39 @@
+---
+ - name: Get Password Parameter
+   hosts: all
+   gather_facts: True
+   tasks:
+     - name: Register server with Spacewalk If server is CentOS
+       shell:
+         cmd: rhnreg_ks --force --activationkey="1-q3patch" --serverUrl=http://172.29.160.52/XMLRPC --sslCACert=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT --profilename="{{ansible_hostname}}"
+       register: centos
+       when: ansible_distribution == 'CentOS'
+
+     - name: Register server with Satellite if server is RHEL
+       shell:
+         cmd: rhnreg_ks --force --activationkey="1-rhel8" --serverUrl=http://172.20.50.26/XMLRPC --sslCACert=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT --profilename="{{ansible_hostname}}"
+       register: rhel
+       when: ansible_distribution == 'Red Hat'
+
+     - name: get the list of installed packaged
+       shell:
+         cmd: yum list installed >> /root/installed_package."{{ansible_date_time.date }}"
+       register: installed
+       when: ansible_distribution == 'Red Hat' or ansible_distribution == 'CentOS'
+
+     - name: get the list of updates
+       shell:
+         cmd: yum list updates >> /root/installed_package."{{ansible_date_time.date }}"
+       register: updates
+       when: ansible_distribution == 'Red Hat' or ansible_distribution == 'CentOS'
+
+     - name: upgrade all packages,
+       yum:
+         name: '*'
+         state: latest
+       register: upgrade
+
+     - name: reboot server
+       reboot:
+         reboot_timeout: 60
+       when: upgrade.changed

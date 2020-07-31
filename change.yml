@@ -1,0 +1,72 @@
+---
+- name: Change the Password Policies
+  hosts: all
+  gather_facts: True
+  tasks:
+    - name: Take backup of all updating files
+      shell: cp -p "{{ item }}" "{{item}}.backup.{{ansible_date_time.date}}"
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+        - /etc/login.defs
+        - /etc/ssh/sshd_config
+        - /etc/profile
+
+    - name: Set Minimum Password Length
+      shell: sed -i 's/minlen=[^[:blank:]]*/minlen=14/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+
+    - name: Set Password History
+      shell: sed -i 's/remember=[^[:blank:]]*/remember=24/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+
+    - name: Set Time between Failed Login
+      shell: sed -i 's/unlock_time=[^[:blank:]]*/unlock_time=1800/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+
+    - name: Set Number of Invalid Logon before locked out
+      shell: sed -i 's/retry=[^[:blank:]]*/retry=5/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+
+    - name: Digit Check
+      shell: sed -i 's/lcredit=[^[:blank:]]*/lcredit=-1/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+
+    - name: Lower Case Check
+      shell: sed -i 's/dcredit=[^[:blank:]]*/dcredit=-1/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+
+    - name: Upper Case Check
+      shell: sed -i 's/ucredit=[^[:blank:]]*/ucredit=-1/g' {{item}}
+      with_items:
+        - /etc/pam.d/system-auth
+
+    - name: Set Minimum Password Age
+      shell: sed -i 's/PASS_MIN_DAYS=[^[:blank:]]*/PASS_MIN_DAYS=1/g' {{item}}
+      with_items:
+        - /etc/login.defs
+
+    - name: Set Maximum Password Age
+      shell: sed -i 's/PASS_MAX_DAYS=[^[:blank:]]*/PASS_MAX_DAYS=365/g'  {{item}}
+      with-items:
+        - /etc/login.defs
+
+    - name: Set Locked Account Time
+      shell: sed -i 's/ClientAliveInterval=[^[:blank:]]*/ClientAliveInterval=600/g'  {{item}}
+      with_items:
+        - /etc/ssh/sshd_config
+
+    - name: TMOUT SET
+      shell: echo "TMOUT 900; export TMOUT" >> "{{ item }}"
+      with_items:
+        - /etc/profile
