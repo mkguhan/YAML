@@ -8,11 +8,12 @@
       - name: "Create user accounts"
         user:
           name: "{{ item }}"
-          groups: "admin,s"
+          groups: "admin,security"
         with_items: "{{ users }}"
+
       - name: "Allow admin users to sudo without a password"
         lineinfile:
           dest: "/etc/sudoers" # path: in version 2.3
           state: "present"
-          regexp: "^%admin"
-          line: "%admin ALL=(ALL) NOPASSWD: ALL"
+          regexp: "^security"
+          line: "sercurity ALL=(ALL) NOPASSWD: ALL"
