@@ -23,7 +23,7 @@
 
      - name: get the list of updates
        shell:
-         cmd: yum list updates >> /root/installed_package."{{ansible_date_time.date }}"
+         cmd: yum list updates >> /root/updated_package."{{ansible_date_time.date }}"
        register: updates
        when: ansible_distribution == 'Red Hat' or ansible_distribution == 'CentOS'
 
